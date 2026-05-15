@@ -495,9 +495,6 @@ def get_trending_movies():
         })
     return trending
 
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-
 with app.app_context():
     db.create_all()
     
