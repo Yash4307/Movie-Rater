@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="welcome-section">
+        <h1>Welcome, {{ session.username }}!</h1>
+        <p>Explore, Rate, and Build your Watchlist</p>
+    </div>
+
+    <!-- Search Section -->
+    <div class="search-section">
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="movieSearch" placeholder="Search for a movie..." />
+                <button id="searchBtn">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+            <div id="searchSuggestions" class="suggestions"></div>
+            <div class="loading" id="loadingSpinner" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i> Searching...
+            </div>
+        </div>
+    </div>
+
+    <!-- Dynamic Movie Result (Populated by JS) -->
+    <div class="movie-result" id="movieResult" style="display: none;">
+        <!-- Movie details will be populated here by script.js -->
+    </div>
+
+    <hr class="section-divider">
+
+    <div class="content-tabs">
+        <button class="tab-btn" onclick="openTab(event, 'TrendingTab')">Trending</button>
+        <button class="tab-btn" onclick="openTab(event, 'TopRatedTab')">Top 10</button>
+        <button class="tab-btn" onclick="openTab(event, 'RecommendedTab')">For You</button>
+    </div>
+
+    <div id="TrendingTab" class="tab-content">
+        {% if trending_movies %}
+        <div class="ratings-grid">
+            {% for movie in trending_movies %}
+            <div class="rating-card">
+                {% if movie.poster %}
+                <img src="{{ movie.poster }}" alt="{{ movie.title }}" class="card-poster">
+                {% endif %}
+                <div class="card-info">
+                    <h4>{{ movie.title }}</h4>
+                    <small>{{ movie.year }} | ⭐ {{ movie.rating }}</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-msg">Trending feed unavailable right now.</p>
+        {% endif %}
+    </div>
+
+    <div id="TopRatedTab" class="tab-content">
+        {% if top_movies %}
+        <div class="ratings-grid">
+            {% for movie in top_movies %}
+            <div class="rating-card">
+                {% if movie.poster_url %}
+                <img src="{{ movie.poster_url }}" alt="{{ movie.movie_title }}" class="card-poster">
+                {% endif %}
+                <div class="card-info">
+                    <h4>{{ movie.movie_title }}</h4>
+                    <small>Avg: {{ movie.avg_rating }}/10 | {{ movie.votes }} votes</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-msg">Not enough community ratings yet.</p>
+        {% endif %}
+    </div>
+
+    <div id="RecommendedTab" class="tab-content">
+        {% if recommendations %}
+        <div class="ratings-grid">
+            {% for movie in recommendations %}
+            <div class="rating-card">
+                {% if movie.poster %}
+                <img src="{{ movie.poster }}" alt="{{ movie.title }}" class="card-poster">
+                {% endif %}
+                <div class="card-info">
+                    <h4>{{ movie.title }}</h4>
+                    <small>{{ movie.year }} | ⭐ {{ movie.rating }}</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-msg">Rate more movies highly to unlock personalized recommendations.</p>
+        {% endif %}
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- Tabs for Dynamic Content -->
+    <div class="content-tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'MyRatings')">My Ratings</button>
+        <button class="tab-btn" onclick="openTab(event, 'WatchlistTab')">Watchlist</button>
+        <button class="tab-btn" onclick="openTab(event, 'CommunityFeed')">Community Feed</button>
+    </div>
+
+    <!-- 1. My Ratings Section -->
+    <div id="MyRatings" class="tab-content active">
+        {% if recent_ratings %}
+        <div class="ratings-grid">
+            {% for rating in recent_ratings %}
+            <div class="rating-card">
+                {% if rating.poster_url %}
+                <img src="{{ rating.poster_url }}" alt="{{ rating.movie_title }}" class="card-poster">
+                {% endif %}
+                <div class="card-info">
+                    <h4>{{ rating.movie_title }}</h4>
+                    <div class="rating-stars">
+                        {% for i in range(1, 6) %}
+                            <i class="fas fa-star {% if i <= (rating.rating / 2)|round(0, 'floor')|int %}active{% endif %}"></i>
+                        {% endfor %}
+                    </div>
+                    {% if rating.review %}
+                    <p class="review">"{{ rating.review[:80] }}..."</p>
+                    {% endif %}
+                    <small>{{ rating.created_at.strftime('%b %d, %Y') }}</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-msg">You haven't rated any movies yet. Start searching!</p>
+        {% endif %}
+    </div>
+
+    <!-- 2. Watchlist Section (NEW) -->
+    <div id="WatchlistTab" class="tab-content">
+        {% if watchlist %}
+        <div class="ratings-grid">
+            {% for item in watchlist %}
+            <div class="rating-card watchlist-card">
+                {% if item.poster_url %}
+                <img src="{{ item.poster_url }}" alt="{{ item.movie_title }}" class="card-poster">
+                {% endif %}
+                <div class="card-info">
+                    <h4>{{ item.movie_title }}</h4>
+                    <button class="btn-small rate-now" onclick="fillSearch('{{ item.movie_title }}')">Rate Now</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-msg">Your watchlist is empty.</p>
+        {% endif %}
+    </div>
+
+    <!-- 3. Community Feed Section (NEW) -->
+    <div id="CommunityFeed" class="tab-content">
+        <div class="feed-container">
+            {% if community_feed %}
+                {% for rating in community_feed %}
+                <div class="feed-item">
+                    <img src="{{ rating.poster_url if rating.poster_url else '/static/default_poster.png' }}" class="feed-poster">
+                    <div class="feed-details">
+                        <p><a href="{{ url_for('user_profile', username=rating.user.username) }}"><strong>{{ rating.user.username }}</strong></a> rated <strong>{{ rating.movie_title }}</strong></p>
+                        <div class="rating-stars">
+                             {% for i in range(1, 6) %}
+                                <i class="fas fa-star {% if i <= (rating.rating / 2)|round(0, 'floor')|int %}active{% endif %}"></i>
+                             {% endfor %}
+                        </div>
+                        <p class="feed-review">"{{ rating.review }}"</p>
+                        <small>{{ rating.created_at.strftime('%I:%M %p - %d %b') }}</small>
+                        {% if rating.user_id != session.user_id %}
+                        <button
+                            class="btn-small like-btn {% if rating.id in liked_rating_ids %}liked{% endif %}"
+                            data-rating-id="{{ rating.id }}"
+                        >
+                            <i class="fas fa-heart"></i>
+                            <span class="like-count">{{ like_counts.get(rating.id, 0) }}</span>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty-msg">No community activity yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Simple Tab Script -->
+<script>
+function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tab-content");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+        tabcontent[i].classList.remove("active");
+    }
+    tablinks = document.getElementsByClassName("tab-btn");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(tabName).style.display = "block";
+    document.getElementById(tabName).classList.add("active");
+    evt.currentTarget.className += " active";
+}
+
+function fillSearch(title) {
+    document.getElementById('movieSearch').value = title;
+    document.getElementById('searchBtn').click();
+    window.scrollTo(0,0);
+}
+</script>
+{% endblock %}

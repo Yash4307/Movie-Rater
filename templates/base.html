@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MovieRater | Discover & Review{% endblock %}</title>
+    <!-- Google Fonts for a more modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="light-theme"> <!-- Default theme class -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo" onclick="window.location.href='{{ url_for('index') }}'" style="cursor: pointer;">
+                <i class="fas fa-film"></i>
+                <span class="logo-text">Movie<span class="text-primary">Rater</span></span>
+            </div>
+
+            <button class="mobile-menu-toggle" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            {% if session.username %}
+            <div class="nav-menu" id="navMenu">
+                <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+                
+                {% if session.is_admin %}
+                <a href="{{ url_for('admin_panel') }}" class="nav-link {% if request.endpoint == 'admin_panel' %}active{% endif %}">
+                    <i class="fas fa-user-shield"></i> Admin
+                </a>
+                {% endif %}
+
+                <div class="nav-user-profile">
+                    <a href="{{ url_for('user_profile', username=session.username) }}" class="username-display nav-link"><i class="fas fa-user-circle"></i> {{ session.username }}</a>
+                    <a href="{{ url_for('logout') }}" class="nav-link logout-btn" title="Sign Out">
+                        <i class="fas fa-power-off"></i>
+                    </a>
+                </div>
+                
+                <!-- Theme Toggle -->
+                <button id="themeToggle" class="theme-toggle-btn">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Flash Message Container -->
+        <div class="toast-container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="toast toast-{{ category }}" role="alert">
+                            <div class="toast-icon">
+                                {% if category == 'success' %}<i class="fas fa-check-circle"></i>
+                                {% elif category == 'error' %}<i class="fas fa-exclamation-triangle"></i>
+                                {% else %}<i class="fas fa-info-circle"></i>{% endif %}
+                            </div>
+                            <div class="toast-body">
+                                {{ message }}
+                            </div>
+                            <button class="toast-close" onclick="this.parentElement.style.display='none'">&times;</button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <div class="page-wrapper">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 MovieRater Engine. Built with <i class="fas fa-heart" style="color: #e74c3c;"></i> for Cinephiles.</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // Basic Mobile Menu Logic
+        const mobileBtn = document.getElementById('mobileMenuBtn');
+        const navMenu = document.getElementById('navMenu');
+        if(mobileBtn) {
+            mobileBtn.addEventListener('click', () => {
+                navMenu.classList.toggle('show');
+            });
+        }
+
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(() => {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 500);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

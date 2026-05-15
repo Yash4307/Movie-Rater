@@ -1,0 +1,15 @@
+# Python cache and environment
+__pycache__/
+*.pyc
+
+# Local environment variables
+movie_rating_app/.env
+
+# VS Code settings
+.vscode/settings.json
+
+# migration files
+movie_rating_app/MIGRATIONS.md
+
+# sqlite database
+instance/

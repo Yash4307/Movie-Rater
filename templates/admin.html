@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel | MovieRater{% endblock %}
+
+{% block content %}
+<div class="admin-panel">
+    <div class="admin-header">
+        <h1><i class="fas fa-users-cog"></i> Admin Dashboard</h1>
+        <div class="admin-stats">
+            <div class="stat-card">
+                <i class="fas fa-users"></i>
+                <h3>{{ users|length }}</h3>
+                <p>Total Users</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-star"></i>
+                <h3>{{ ratings_count }}</h3>
+                <p>Total Ratings</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="users-section">
+        <h2>Manage Users</h2>
+        <div class="users-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Joined Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>#{{ user.id }}</td>
+                        <td><strong>{{ user.username }}</strong></td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <span class="badge {{ 'badge-admin' if user.is_admin else 'badge-user' }}">
+                                {{ 'Admin' if user.is_admin else 'User' }}
+                            </span>
+                        </td>
+                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td class="actions">
+                            <!-- Toggle Admin Rights -->
+                            <a href="{{ url_for('toggle_admin', user_id=user.id) }}" 
+                               class="btn-small btn-secondary"
+                               title="Toggle Admin Role"
+                               onclick="return confirm('Toggle admin privileges for {{ user.username }}?')">
+                                <i class="fas fa-user-shield"></i>
+                            </a>
+
+                            <!-- Delete User (Prevent self-deletion) -->
+                            {% if user.id != session.user_id %}
+                            <a href="{{ url_for('delete_user', user_id=user.id) }}" 
+                               class="btn-small btn-danger"
+                               title="Delete User"
+                               onclick="return confirm('Permanently delete user {{ user.username }}?')">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                            {% else %}
+                            <span class="text-muted" style="font-size: 0.8rem;">(You)</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
