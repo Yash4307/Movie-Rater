@@ -55,7 +55,7 @@ body {
     top: 0;
     z-index: 20;
     padding: 0.85rem 0;
-    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    background: var(--surface);
     backdrop-filter: var(--blur);
     border-bottom: 1px solid var(--border-color);
 }
@@ -236,7 +236,7 @@ textarea {
     padding: 0.8rem 0.9rem;
     border-radius: 10px;
     border: 1px solid var(--card-border);
-    background: color-mix(in srgb, var(--surface-strong) 92%, transparent);
+    background: var(--surface-strong);
     color: var(--text-dark);
     font: inherit;
 }
@@ -469,7 +469,7 @@ small { color: var(--muted-text); }
     text-align: center;
     padding: 1.2rem;
     border-top: 1px solid var(--border-color);
-    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    background: var(--surface);
     backdrop-filter: var(--blur);
 }
 
