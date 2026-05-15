@@ -14,15 +14,15 @@ from whitenoise import WhiteNoise
 load_dotenv()
 
 # OMDb API Configuration
-OMDB_API_KEY = os.getenv('OMDB_API_KEY','a-temporary-fallback-secret-key-for-deployment')
-#if not OMDB_API_KEY:
-    #raise RuntimeError('OMDB_API_KEY is not set. Add it to .env.')
-OMDB_BASE_URL = 'http://www.omdbapi.com/'
+OMDB_API_KEY = os.getenv('OMDB_API_KEY','')
+if not OMDB_API_KEY:
+    raise RuntimeError('OMDB_API_KEY is not set. Add it to .env.')
+OMDB_BASE_URL = 'https://www.omdbapi.com/'
 
 app = Flask(__name__)
 app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 
-secret_key = os.getenv('SECRET_KEY')
+secret_key = os.getenv('SECRET_KEY', '')
 if not secret_key:
     raise RuntimeError('SECRET_KEY is not set. Add it to .env.')
 app.secret_key = secret_key
@@ -35,7 +35,7 @@ if not database_url:
     db_host = os.getenv('DB_HOST', 'localhost')
     db_name = os.getenv('DB_NAME')
     # Grab Railway's custom internal port variable, default to 3306 locally
-    db_port = os.getenv('DB_PORT', os.getenv('PORT', '3306'))
+    db_port = os.getenv('DB_PORT', '3306')
 
     if not all([db_user, db_password, db_name]):
         raise RuntimeError('Database credentials are missing in .env')
@@ -46,7 +46,15 @@ if not database_url:
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Engine options to prevent MySQL connection timeouts in production
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"pool_pre_ping": True}
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300,
+    "connect_args": {
+        "ssl": {
+            "ssl_mode": "REQUIRED"
+        }
+    }
+}
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -490,4 +498,4 @@ def get_trending_movies():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True, host='localhost', port=5001)
+    app.run(debug=True)
