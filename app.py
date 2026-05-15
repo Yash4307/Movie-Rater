@@ -34,11 +34,14 @@ if not database_url:
     db_password = os.getenv('DB_PASSWORD')
     db_host = os.getenv('DB_HOST', 'localhost')
     db_name = os.getenv('DB_NAME')
+    # Grab Railway's custom internal port variable, default to 3306 locally
+    db_port = os.getenv('DB_PORT', os.getenv('PORT', '3306'))
 
     if not all([db_user, db_password, db_name]):
         raise RuntimeError('Database credentials are missing in .env')
 
-    database_url = f'mysql+pymysql://{db_user}:{db_password}@{db_host}/{db_name}'
+    # Added the : {db_port} match to handle Railway's dynamic network routing
+    database_url = f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
