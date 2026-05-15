@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const body = document.body;
 
     // Check for saved theme
-    const savedTheme = localStorage.getItem('theme') || 'light-theme';
+    const savedTheme = localStorage.getItem('theme') || 'dark-theme';
     body.className = savedTheme;
     updateThemeIcon(savedTheme);
 
