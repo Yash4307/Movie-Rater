@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import hashlib
 import os
 import requests
+from whitenoise import WhiteNoise
 
 # Load environment variables
 load_dotenv()
@@ -19,6 +20,7 @@ if not OMDB_API_KEY:
 OMDB_BASE_URL = 'http://www.omdbapi.com/'
 
 app = Flask(__name__)
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 
 secret_key = os.getenv('SECRET_KEY')
 if not secret_key:
