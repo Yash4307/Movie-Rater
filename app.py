@@ -501,16 +501,16 @@ with app.app_context():
 #temporary admin user creation for testing
 admin = User.query.filter_by(username='admin').first()
 
-    if not admin:
-        admin_user = User(
-            username='admin',
-            email='admin@gmail.com',
-            password=hash_password('admin123'),
-            is_admin=True
-        )
+if not admin:
+    admin_user = User(
+        username='admin',
+        email='admin@gmail.com',
+        password=hash_password('admin123'),
+        is_admin=True
+    )
 
-        db.session.add(admin_user)
-        db.session.commit()
+    db.session.add(admin_user)
+    db.session.commit()
     
 if __name__ == '__main__':
     app.run(debug=True)
