@@ -1,0 +1,53 @@
+{# Animated cinema scene. Pure CSS/SVG. Pass variant='login' or 'register' (register mirrors it). #}
+<div class="scene{% if variant == 'register' %} flip{% endif %}" aria-hidden="true">
+  <div class="mirror">
+    <div class="strip a"></div>
+    <div class="strip b"></div>
+    <div class="beam"></div>
+    <div class="dust">
+      {% for i in range(16) %}<i style="left:{{ 12 + (i * 37) % 70 }}%; top:{{ 18 + (i * 53) % 70 }}%; --d:{{ 6 + (i * 7) % 8 }}s; --w:-{{ (i * 3) % 9 }}s"></i>{% endfor %}
+    </div>
+    <svg class="projector" viewBox="0 -14 320 224">
+      <path class="film" d="M86 14 C 112 -12, 190 2, 214 46"/>
+      <g class="spin">
+        <circle cx="86" cy="72" r="58" fill="currentColor" fill-opacity=".14" stroke="currentColor" stroke-width="7"/>
+        {% for dx, dy in [(34,0),(17,29),(-17,29),(-34,0),(-17,-29),(17,-29)] %}<circle class="hole" cx="{{ 86 + dx }}" cy="{{ 72 + dy }}" r="11"/>{% endfor %}
+        <circle cx="86" cy="72" r="9" fill="currentColor"/>
+      </g>
+      <g class="spin rev">
+        <circle cx="214" cy="90" r="44" fill="currentColor" fill-opacity=".14" stroke="currentColor" stroke-width="6"/>
+        {% for dx, dy in [(26,0),(13,23),(-13,23),(-26,0),(-13,-23),(13,-23)] %}<circle class="hole" cx="{{ 214 + dx }}" cy="{{ 90 + dy }}" r="8.5"/>{% endfor %}
+        <circle cx="214" cy="90" r="7" fill="currentColor"/>
+      </g>
+      <rect class="body" x="40" y="140" width="244" height="54" rx="12"/>
+      <path d="M284 150 L314 136 L314 184 L284 178 Z" fill="currentColor"/>
+      <circle cx="104" cy="167" r="6" fill="currentColor" opacity=".6"/><circle cx="128" cy="167" r="6" fill="currentColor" opacity=".35"/>
+    </svg>
+  </div>
+
+  <svg class="clap" viewBox="0 0 160 150">
+    <defs><clipPath id="armclip"><rect x="8" y="12" width="144" height="26" rx="4"/></clipPath></defs>
+    <rect class="board" x="8" y="42" width="144" height="100" rx="8"/>
+    <rect x="8" y="42" width="144" height="16" fill="none"/>
+    <g class="arm"><g clip-path="url(#armclip)">
+      <rect x="8" y="12" width="144" height="26" class="s2"/>
+      {% for i in range(0, 8, 2) %}<polygon class="s1" points="{{ 8 + i*20 }},12 {{ 8 + i*20 + 20 }},12 {{ 8 + i*20 + 6 }},38 {{ 8 + i*20 - 14 }},38"/>{% endfor %}
+    </g></g>
+    <text x="20" y="84">SCENE  01</text><text x="20" y="108">TAKE   01</text>
+    <line x1="20" y1="118" x2="140" y2="118" stroke="currentColor" stroke-opacity=".25"/>
+    <text x="20" y="134">ROLL  A</text>
+  </svg>
+
+  <svg class="popcorn" viewBox="0 0 150 172">
+    {% for x, y, r in [(40,58,16),(66,46,18),(94,54,17),(118,62,14),(54,34,14),(82,28,16),(106,38,14),(70,62,15)] %}
+    <circle class="kern" cx="{{ x }}" cy="{{ y }}" r="{{ r }}" style="animation-delay:-{{ loop.index0 * 0.35 }}s"/>{% endfor %}
+    <polygon class="bk" points="22,72 128,72 114,166 36,166"/>
+    {% for i in range(0, 8, 2) %}<polygon class="rd" points="{{ 22 + 13.25*i }},72 {{ 22 + 13.25*(i+1) }},72 {{ 36 + 9.75*(i+1) }},166 {{ 36 + 9.75*i }},166"/>{% endfor %}
+    <rect class="rim" x="16" y="66" width="118" height="10" rx="5"/>
+  </svg>
+
+  <div class="vig v1"><div class="vig-poster"></div><div><span class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></span><small>Rated 5.0 by you</small></div></div>
+  <div class="vig v2"><i class="fas fa-heart"></i><div>Loved by 128<small>Your review</small></div></div>
+  <div class="vig v3"><i class="fas fa-check-circle"></i><div>Saved to watchlist<small>Watch later</small></div></div>
+  <div class="vig v4"><i class="fas fa-tv"></i><div>Streaming free<small>Where to watch</small></div></div>
+</div>

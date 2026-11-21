@@ -1,43 +1,35 @@
-{% extends "base.html" %}
-
-{% block title %}Register | MovieRater{% endblock %}
-
-{% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-header">
-            <i class="fas fa-user-plus"></i>
-            <h2>Join MovieRater</h2>
-            <p>Create an account to start rating movies</p>
-        </div>
-
-        <form method="POST" class="auth-form">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" placeholder="Choose a unique username" required>
-            </div>
-
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" placeholder="name@example.com" required>
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Create a strong password" required>
-            </div>
-
-            <button type="submit" class="btn-primary">
-                <i class="fas fa-user-plus"></i> Register
-            </button>
-        </form>
-
-        <div class="auth-footer">
-            <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
-            <div style="margin-top: 1rem;">
-                <a href="{{ url_for('index') }}" class="text-muted"><i class="fas fa-arrow-left"></i> Back to Home</a>
-            </div>
-        </div>
+{% extends "auth_base.html" %}
+{% block title %}Create account | {{ app_name }}{% endblock %}
+{% block auth_class %}flip{% endblock %}
+{% block scene %}{% with variant='register' %}{% include '_scene.html' %}{% endwith %}{% endblock %}
+{% block auth_body %}
+<section class="auth-card" aria-labelledby="reg-h">
+  <h1 id="reg-h">Create an account</h1>
+  <p class="sub">Join {{ app_name }} and be part of the movie community</p>
+  <form method="POST" class="auth-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field">
+      <label for="email">Email</label>
+      <div class="input-wrap"><i class="fas fa-envelope lead"></i>
+        <input class="input" type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required autofocus></div>
     </div>
+    <div class="field">
+      <label for="username">Username</label>
+      <div class="input-wrap"><i class="fas fa-user lead"></i>
+        <input class="input" type="text" id="username" name="username" placeholder="Choose a username" autocomplete="username" pattern="[A-Za-z0-9_.\-]{3,30}" title="3-30 characters: letters, numbers, . _ -" required></div>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <div class="input-wrap"><i class="fas fa-lock lead"></i>
+        <input class="input" type="password" id="password" name="password" placeholder="At least 8 characters" autocomplete="new-password" minlength="8" required>
+        <button type="button" class="toggle-pw" data-toggle-password="password" aria-label="Show password"><i class="fas fa-eye"></i></button></div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">Register</button>
+  </form>
+  <p class="auth-alt">Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+</section>
+<div class="auth-copy">
+  <h2 class="tagline"><span class="w" style="--i:0">Good</span><span class="w" style="--i:1">Movies Bring</span><span class="w hot" style="--i:2">People Together</span></h2>
+  <span class="tagline-bar"></span>
 </div>
 {% endblock %}

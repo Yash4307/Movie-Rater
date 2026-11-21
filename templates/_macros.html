@@ -1,0 +1,33 @@
+{% macro stars(value) -%}
+<span class="stars" role="img" aria-label="{{ value }} out of 5">{% for i in range(1, 6) %}<i class="fas fa-star{% if i <= value %} on{% endif %}"></i>{% endfor %}</span>
+{%- endmacro %}
+
+{# One poster tile. ref = movie id (opens the details dialog). #}
+{% macro poster_card(ref, title, src, meta='', badge='', rank=0, removable=false) -%}
+<div class="m-card">
+  <button type="button" class="poster" data-ref="{{ ref }}" aria-label="Open details for {{ title }}">
+    <img src="{{ src or url_for('static', filename='img/no-poster.svg') }}" alt="" loading="lazy">
+    {% if rank %}<span class="poster-rank">{{ rank }}</span>{% endif %}
+    {% if badge and badge != 'N/A' %}<span class="poster-badge"><i class="fas fa-star"></i> {{ badge }}</span>{% endif %}
+  </button>
+  {% if removable %}<button type="button" class="poster-remove" data-remove-watch="{{ ref }}" aria-label="Remove {{ title }} from watchlist"><i class="fas fa-times"></i></button>{% endif %}
+  <div class="m-card-body"><h4 title="{{ title }}">{{ title }}</h4>{% if meta %}<span class="m-meta">{{ meta }}</span>{% endif %}</div>
+</div>
+{%- endmacro %}
+
+{% macro avatar(name, cls='') -%}
+<span class="avatar {{ cls }}" aria-hidden="true">{{ (name or '?')[:1] }}</span>
+{%- endmacro %}
+
+{# Logout must be a POST (with CSRF token) so another site cannot log people out with a plain link. #}
+{% macro logout_item() -%}
+<form class="nav-form" method="POST" action="{{ url_for('logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="nav-item"><i class="fas fa-sign-out-alt"></i>Logout</button></form>
+{%- endmacro %}
+
+{% macro flash_toasts() -%}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+  <div class="toast {{ category }}" role="alert"><span>{{ message }}</span><button type="button" aria-label="Dismiss">&times;</button></div>
+  {% endfor %}
+{% endwith %}
+{%- endmacro %}

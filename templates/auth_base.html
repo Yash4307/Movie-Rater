@@ -1,0 +1,28 @@
+{% from "_macros.html" import flash_toasts %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <script src="{{ url_for('static', filename='theme-init.js') }}"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main class="auth {% block auth_class %}{% endblock %}">
+  {% block scene %}{% endblock %}
+  <header class="auth-top">
+    <a class="brand" href="{{ url_for('login') }}"><span class="brand-mark"><i class="fas fa-film"></i></span>{{ app_name }}</a>
+    <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle light/dark theme"><i class="fas fa-sun"></i></button>
+  </header>
+  <div class="toasts" id="toasts">{{ flash_toasts() }}</div>
+  <div class="auth-wrap">{% block auth_body %}{% endblock %}</div>
+</main>
+<script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</body>
+</html>

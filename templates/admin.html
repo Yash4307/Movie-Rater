@@ -1,77 +1,72 @@
 {% extends "base.html" %}
-
-{% block title %}Admin Panel | MovieRater{% endblock %}
+{% from "_macros.html" import avatar, logout_item %}
+{% block title %}Admin | {{ app_name }}{% endblock %}
+{% block topbar_search %}<h1 style="font-size:1.1rem;font-weight:700">Admin</h1>{% endblock %}
+{% block nav %}
+<a class="nav-item" href="#dashboard" data-nav-view="dashboard"><i class="fas fa-th-large"></i>Dashboard</a>
+<a class="nav-item" href="#users" data-nav-view="users"><i class="fas fa-users"></i>Users</a>
+<a class="nav-item" href="{{ url_for('index') }}"><i class="fas fa-arrow-left"></i>Back to app</a>
+{{ logout_item() }}
+{% endblock %}
 
 {% block content %}
-<div class="admin-panel">
-    <div class="admin-header">
-        <h1><i class="fas fa-users-cog"></i> Admin Dashboard</h1>
-        <div class="admin-stats">
-            <div class="stat-card">
-                <i class="fas fa-users"></i>
-                <h3>{{ users|length }}</h3>
-                <p>Total Users</p>
-            </div>
-            <div class="stat-card">
-                <i class="fas fa-star"></i>
-                <h3>{{ ratings_count }}</h3>
-                <p>Total Ratings</p>
-            </div>
-        </div>
+<section class="view is-active" id="view-dashboard" data-view="dashboard">
+  <h1 class="page-title">Dashboard</h1>
+  <p class="page-sub">Overview of your movie platform</p>
+  <div class="admin-stats">
+    <div class="stat"><span class="stat-ico red"><i class="fas fa-film"></i></span><div><b>{{ '{:,}'.format(stats.movies) }}</b><span>Movies in catalog</span></div></div>
+    <div class="stat"><span class="stat-ico blue"><i class="fas fa-users"></i></span><div><b>{{ '{:,}'.format(stats.users) }}</b><span>Total users</span></div></div>
+    <div class="stat"><span class="stat-ico green"><i class="fas fa-comment"></i></span><div><b>{{ '{:,}'.format(stats.reviews) }}</b><span>Total reviews</span></div></div>
+    <div class="stat"><span class="stat-ico gold"><i class="fas fa-star"></i></span><div><b>{{ stats.avg if stats.avg else '-' }}</b><span>Average rating</span></div></div>
+  </div>
+  <div class="admin-grid">
+    <div class="panel">
+      <h3>Recent activity</h3>
+      <ul class="activity">
+        {% for when, kind, obj in activity %}
+        <li>
+          {% if kind == 'rating' %}{{ avatar(obj.user.username if obj.user else '?', 'sm') }}<span><b>{{ obj.user.username if obj.user else 'deleted user' }}</b> rated {{ obj.movie_title }} {{ (obj.rating / 2) | round(1) }}/5</span>
+          {% else %}{{ avatar(obj.username, 'sm') }}<span>New user registered: <b>{{ obj.username }}</b></span>{% endif %}
+          <time>{{ when | timeago }}</time>
+        </li>
+        {% else %}<li class="m-meta">No activity yet.</li>{% endfor %}
+      </ul>
     </div>
-
-    <div class="users-section">
-        <h2>Manage Users</h2>
-        <div class="users-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Joined Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr>
-                        <td>#{{ user.id }}</td>
-                        <td><strong>{{ user.username }}</strong></td>
-                        <td>{{ user.email }}</td>
-                        <td>
-                            <span class="badge {{ 'badge-admin' if user.is_admin else 'badge-user' }}">
-                                {{ 'Admin' if user.is_admin else 'User' }}
-                            </span>
-                        </td>
-                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
-                        <td class="actions">
-                            <!-- Toggle Admin Rights -->
-                            <a href="{{ url_for('toggle_admin', user_id=user.id) }}" 
-                               class="btn-small btn-secondary"
-                               title="Toggle Admin Role"
-                               onclick="return confirm('Toggle admin privileges for {{ user.username }}?')">
-                                <i class="fas fa-user-shield"></i>
-                            </a>
-
-                            <!-- Delete User (Prevent self-deletion) -->
-                            {% if user.id != session.user_id %}
-                            <a href="{{ url_for('delete_user', user_id=user.id) }}" 
-                               class="btn-small btn-danger"
-                               title="Delete User"
-                               onclick="return confirm('Permanently delete user {{ user.username }}?')">
-                                <i class="fas fa-trash"></i>
-                            </a>
-                            {% else %}
-                            <span class="text-muted" style="font-size: 0.8rem;">(You)</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <div class="panel">
+      <h3>Ratings distribution <small class="m-meta">({{ stats.ratings }} total)</small></h3>
+      {% for d in distribution %}
+      <div class="dist-row"><span>{{ d.stars }} <i class="fas fa-star" style="color:var(--warn);font-size:.7rem"></i></span><div class="dist-bar"><i style="width:{{ d.pct }}%"></i></div><span>{{ d.pct }}%</span></div>
+      {% endfor %}
     </div>
-</div>
+  </div>
+</section>
+
+<section class="view" id="view-users" data-view="users">
+  <h1 class="page-title">Users</h1>
+  <p class="page-sub">Manage roles and accounts</p>
+  <div class="panel table-wrap">
+    <table>
+      <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td>#{{ user.id }}</td><td><b>{{ user.username }}</b></td><td>{{ user.email }}</td>
+          <td><span class="badge {{ 'admin' if user.is_admin else 'user' }}">{{ 'Admin' if user.is_admin else 'User' }}</span></td>
+          <td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else '' }}</td>
+          <td class="actions">
+            {% if user.id != session.user_id %}
+            <form class="inline-form" method="POST" action="{{ url_for('toggle_admin', user_id=user.id) }}" data-confirm="Change admin role for {{ user.username }}?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-ghost btn-sm" title="Toggle admin role" type="submit"><i class="fas fa-user-shield"></i></button></form>
+            <form class="inline-form" method="POST" action="{{ url_for('delete_user', user_id=user.id) }}" data-confirm="Permanently delete {{ user.username }} and all their ratings?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-danger btn-sm" title="Delete user" type="submit"><i class="fas fa-trash"></i></button></form>
+            {% else %}<span class="m-meta">(you)</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
 {% endblock %}

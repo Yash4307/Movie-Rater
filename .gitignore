@@ -1,15 +1,34 @@
-# Python cache
-__pycache__/
-*.pyc
-
-# Environment variables
+# secrets and local config: NEVER commit these
 .env
+.env.*
+!.env.example
+*.pem
+*.key
 
-# VS Code
-.vscode/
+# virtual environments
+.venv/
+.movierater/
+venv/
+myenv/
 
-# SQLite DB
+# local databases and backups
 instance/
+*.db
+*.sqlite
+*.sqlite3
+*backup*.sql
 
-# OS files
+# third-party datasets (MovieLens licence forbids redistribution)
+data/ml-*/
+ml-latest*/
+*.zip
+
+# python / tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.idea/
+.vscode/
 .DS_Store

@@ -1,79 +1,71 @@
 {% extends "base.html" %}
-
-{% block title %}{{ profile_user.username }} | Profile{% endblock %}
-
+{% from "_macros.html" import poster_card, stars, avatar %}
+{% block title %}{{ profile_user.username }} | {{ app_name }}{% endblock %}
 {% block content %}
-<div class="dashboard">
-    <div class="welcome-section">
-        <h1>{{ profile_user.username }}</h1>
-        <p>Joined {{ profile_user.created_at.strftime('%b %Y') }}</p>
+<div class="profile-head">
+  {{ avatar(profile_user.username, 'lg') }}
+  <div>
+    <h1>{{ profile_user.username }}</h1>
+    <p class="page-sub" style="margin:2px 0 0">Joined {{ profile_user.created_at.strftime('%B %Y') }}</p>
+    <div class="profile-stats">
+      <div><b>{{ taste.rated }}</b><span>Movies rated</span></div>
+      <div><b>{{ watchlist | length }}</b><span>In watchlist</span></div>
+      <div><b>{{ taste.average_stars if taste.average_stars else '-' }}</b><span>Avg. rating</span></div>
     </div>
-
-    <div class="content-tabs">
-        <button class="tab-btn active" onclick="openTab(event, 'ProfileRatings')">Ratings</button>
-        <button class="tab-btn" onclick="openTab(event, 'ProfileWatchlist')">Watchlist</button>
-    </div>
-
-    <div id="ProfileRatings" class="tab-content active">
-        {% if ratings %}
-        <div class="ratings-grid">
-            {% for rating in ratings %}
-            <div class="rating-card">
-                {% if rating.poster_url %}
-                <img src="{{ rating.poster_url }}" alt="{{ rating.movie_title }}" class="card-poster">
-                {% endif %}
-                <div class="card-info">
-                    <h4>{{ rating.movie_title }}</h4>
-                    <div class="rating-stars">
-                        {% for i in range(1, 6) %}
-                            <i class="fas fa-star {% if i <= (rating.rating / 2)|round(0, 'floor')|int %}active{% endif %}"></i>
-                        {% endfor %}
-                    </div>
-                    <small>{{ rating.created_at.strftime('%b %d, %Y') }}</small>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <p class="empty-msg">No ratings yet.</p>
-        {% endif %}
-    </div>
-
-    <div id="ProfileWatchlist" class="tab-content">
-        {% if watchlist %}
-        <div class="ratings-grid">
-            {% for item in watchlist %}
-            <div class="rating-card watchlist-card">
-                {% if item.poster_url %}
-                <img src="{{ item.poster_url }}" alt="{{ item.movie_title }}" class="card-poster">
-                {% endif %}
-                <div class="card-info">
-                    <h4>{{ item.movie_title }}</h4>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <p class="empty-msg">Watchlist is empty.</p>
-        {% endif %}
-    </div>
+  </div>
+  {% if taste.top_genres %}
+  <div style="margin-left:auto">
+    <span class="filter-label">Favourite genres</span>
+    <div class="chips" style="margin-top:8px">{% for g in taste.top_genres[:4] %}<span class="chip">{{ g.genre }}</span>{% endfor %}</div>
+  </div>
+  {% endif %}
 </div>
 
-<script>
-function openTab(evt, tabName) {
-    var i, tabcontent, tablinks;
-    tabcontent = document.getElementsByClassName("tab-content");
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-        tabcontent[i].classList.remove("active");
-    }
-    tablinks = document.getElementsByClassName("tab-btn");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    document.getElementById(tabName).style.display = "block";
-    document.getElementById(tabName).classList.add("active");
-    evt.currentTarget.className += " active";
-}
-</script>
+<div class="tabs" role="tablist">
+  <a class="chip" href="#p-ratings" data-nav-view="p-ratings">Ratings</a>
+  <a class="chip" href="#p-watchlist" data-nav-view="p-watchlist">Watchlist</a>
+</div>
+
+<section class="view is-active" id="view-p-ratings" data-view="p-ratings">
+  {% if ratings %}
+  <div class="grid">
+    {% for r in ratings %}
+    <div class="m-card">
+      <button type="button" class="poster" data-ref="{{ r.movie_id }}" aria-label="Open details for {{ r.movie_title }}"><img src="{{ r.poster_url or url_for('static', filename='img/no-poster.svg') }}" alt="" loading="lazy"></button>
+      <div class="m-card-body"><h4 title="{{ r.movie_title }}">{{ r.movie_title }}</h4>{{ stars((r.rating / 2) | int) }}
+        {% if r.review %}<p class="m-review">{{ r.review }}</p>{% endif %}<span class="m-meta">{{ r.created_at.strftime('%b %d, %Y') }}</span></div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}<p class="empty">No ratings yet.</p>{% endif %}
+</section>
+
+<section class="view" id="view-p-watchlist" data-view="p-watchlist">
+  {% if watchlist %}
+  <div class="grid">{% for item in watchlist %}{{ poster_card(item.movie_id, item.movie_title, item.poster_url, '') }}{% endfor %}</div>
+  {% else %}<p class="empty">Watchlist is empty.</p>{% endif %}
+</section>
+
+{% if profile_user.username == session.username %}
+<section class="danger-zone" aria-labelledby="dz-h">
+  <div><h3 id="dz-h">Delete account</h3><p>Permanently remove your account, ratings, reviews, watchlist and likes. This cannot be undone.</p></div>
+  <button type="button" class="btn btn-danger" id="openDelete"><i class="fas fa-trash"></i> Delete account</button>
+</section>
+
+<dialog class="confirm" id="deleteDialog" data-username="{{ profile_user.username }}" aria-labelledby="del-h">
+  <form method="POST" action="{{ url_for('delete_account') }}" class="auth-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <h3 id="del-h">Delete your account?</h3>
+    <p class="fine" style="font-size:.88rem;margin:0">Everything you have rated, reviewed or saved will be erased from the database for good.</p>
+    <div class="field">
+      <label for="confirmUsername">Type your username <b>{{ profile_user.username }}</b> to confirm</label>
+      <input class="input" id="confirmUsername" name="confirm_username" autocomplete="off" required>
+    </div>
+    <div class="confirm-actions">
+      <button type="button" class="btn btn-ghost" id="cancelDelete">Cancel</button>
+      <button type="submit" class="btn btn-primary" id="confirmDelete" disabled>Delete forever</button>
+    </div>
+  </form>
+</dialog>
+{% endif %}
 {% endblock %}

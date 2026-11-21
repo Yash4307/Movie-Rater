@@ -1,104 +1,68 @@
+{% from "_macros.html" import avatar, flash_toasts, logout_item %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="{{ session.get('theme', 'dark') }}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}MovieRater | Discover & Review{% endblock %}</title>
-    <!-- Google Fonts for a more modern look -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="light-theme"> <!-- Default theme class -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo" onclick="window.location.href='{{ url_for('index') }}'" style="cursor: pointer;">
-                <i class="fas fa-film"></i>
-                <span class="logo-text">Movie<span class="text-primary">Rater</span></span>
-            </div>
-
-            <button class="mobile-menu-toggle" id="mobileMenuBtn">
-                <i class="fas fa-bars"></i>
-            </button>
-
-            {% if session.username %}
-            <div class="nav-menu" id="navMenu">
-                <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
-                    <i class="fas fa-th-large"></i> Dashboard
-                </a>
-                
-                {% if session.is_admin %}
-                <a href="{{ url_for('admin_panel') }}" class="nav-link {% if request.endpoint == 'admin_panel' %}active{% endif %}">
-                    <i class="fas fa-user-shield"></i> Admin
-                </a>
-                {% endif %}
-
-                <div class="nav-user-profile">
-                    <a href="{{ url_for('user_profile', username=session.username) }}" class="username-display nav-link"><i class="fas fa-user-circle"></i> {{ session.username }}</a>
-                    <a href="{{ url_for('logout') }}" class="nav-link logout-btn" title="Sign Out">
-                        <i class="fas fa-power-off"></i>
-                    </a>
-                </div>
-                
-                <!-- Theme Toggle -->
-                <button id="themeToggle" class="theme-toggle-btn">
-                    <i class="fas fa-moon"></i>
-                </button>
-            </div>
-            {% endif %}
-        </div>
+<body data-user="{{ session.username }}">
+{% set on_index = request.endpoint == 'index' %}
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark"><i class="fas fa-film"></i></span>{{ app_name }}</a>
+    <nav class="nav">
+      {% block nav %}
+      {% for key, label, icon in [('home','Home','fa-home'), ('discover','Discover','fa-compass'), ('watchlist','My Watchlist','fa-bookmark'), ('ratings','My Ratings','fa-star'), ('community','Community','fa-users')] %}
+      <a class="nav-item" href="{{ url_for('index') }}#{{ key }}"{% if on_index %} data-nav-view="{{ key }}"{% endif %}><i class="fas {{ icon }}"></i>{{ label }}</a>
+      {% endfor %}
+      <a class="nav-item{% if request.endpoint == 'user_profile' and request.view_args.username == session.username %} active{% endif %}" href="{{ url_for('user_profile', username=session.username) }}"><i class="fas fa-user"></i>Profile</a>
+      {% if session.is_admin %}<a class="nav-item" href="{{ url_for('admin_panel') }}"><i class="fas fa-shield-alt"></i>Admin</a>{% endif %}
+      {{ logout_item() }}
+      {% endblock %}
     </nav>
+  </aside>
+  <div class="scrim" id="scrim"></div>
 
-    <main class="main-content">
-        <!-- Flash Message Container -->
-        <div class="toast-container">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="toast toast-{{ category }}" role="alert">
-                            <div class="toast-icon">
-                                {% if category == 'success' %}<i class="fas fa-check-circle"></i>
-                                {% elif category == 'error' %}<i class="fas fa-exclamation-triangle"></i>
-                                {% else %}<i class="fas fa-info-circle"></i>{% endif %}
-                            </div>
-                            <div class="toast-body">
-                                {{ message }}
-                            </div>
-                            <button class="toast-close" onclick="this.parentElement.style.display='none'">&times;</button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-        </div>
-
-        <div class="page-wrapper">
-            {% block content %}{% endblock %}
-        </div>
-    </main>
-
-    <footer class="footer">
-        <p>&copy; 2026 MovieRater Engine. Built with <i class="fas fa-heart" style="color: #e74c3c;"></i> for Cinephiles.</p>
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="Open menu"><i class="fas fa-bars"></i></button>
+      {% block topbar_search %}
+      <div class="search" role="search">
+        <i class="fas fa-search"></i>
+        <input id="globalSearch" type="search" placeholder="Search movies..." autocomplete="off" aria-label="Search movies" aria-controls="searchResults">
+        <kbd>/</kbd>
+        <div class="search-results" id="searchResults" role="listbox"></div>
+      </div>
+      {% endblock %}
+      <span class="topbar-spacer"></span>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle light/dark theme"><i class="fas fa-sun"></i></button>
+      <a class="user-chip" href="{{ url_for('user_profile', username=session.username) }}">{{ avatar(session.username) }}<span>{{ session.username }}</span></a>
+    </header>
+    <main class="content">{% block content %}{% endblock %}</main>
+    <footer class="site-footer">
+      <p>{{ app_name }} is a portfolio project. Movie data from <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">TMDB</a>
+        and <a href="https://www.omdbapi.com/" target="_blank" rel="noopener noreferrer">OMDb</a>; streaming availability from
+        <a href="https://www.justwatch.com/" target="_blank" rel="noopener noreferrer">JustWatch</a>.
+        This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
     </footer>
+  </div>
+</div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script>
-        // Basic Mobile Menu Logic
-        const mobileBtn = document.getElementById('mobileMenuBtn');
-        const navMenu = document.getElementById('navMenu');
-        if(mobileBtn) {
-            mobileBtn.addEventListener('click', () => {
-                navMenu.classList.toggle('show');
-            });
-        }
+<div class="toasts" id="toasts">{{ flash_toasts() }}</div>
 
-        // Auto-hide flash messages after 5 seconds
-        setTimeout(() => {
-            const toasts = document.querySelectorAll('.toast');
-            toasts.forEach(toast => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 500);
-            });
-        }, 5000);
-    </script>
+<div class="modal" id="movieModal" aria-hidden="true">
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="md-title" tabindex="-1">
+    <button type="button" class="dialog-close" id="dialogClose" aria-label="Close"><i class="fas fa-times"></i></button>
+    <div id="movieModalBody"></div>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='script.js') }}" defer></script>
 </body>
 </html>
