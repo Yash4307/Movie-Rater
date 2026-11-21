@@ -2,7 +2,7 @@
 
 A full-stack movie discovery and rating app: search any movie, see where to stream it, rate and review it, and get recommendations from a hybrid recommender that is evaluated offline.
 
-**Live demo:** _add your Render URL here_  ·  **Stack:** Flask, SQLAlchemy, MySQL-compatible database (TiDB Cloud), scikit-learn, vanilla JS
+**Live demo:** https://movie-rater-3y6w.onrender.com/ ·  **Stack:** Flask, SQLAlchemy, MySQL-compatible database (TiDB Cloud), scikit-learn, vanilla JS
 
 <!-- Add screenshots to docs/screenshots/ and link them here: login, dashboard, movie dialog, discover, admin. -->
 
