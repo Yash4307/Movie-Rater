@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" role="img" aria-label="No poster available">
+  <rect width="300" height="450" fill="#e9e6df"/>
+  <rect x="24" y="24" width="252" height="402" rx="10" fill="none" stroke="#b9b4a8" stroke-width="3" stroke-dasharray="10 8"/>
+  <g transform="translate(150 205)">
+    <rect x="-46" y="-34" width="92" height="68" rx="8" fill="none" stroke="#8d887c" stroke-width="5"/>
+    <polygon points="-12,-16 -12,16 18,0" fill="#8d887c"/>
+  </g>
+  <text x="150" y="290" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#8d887c">No poster</text>
+</svg>

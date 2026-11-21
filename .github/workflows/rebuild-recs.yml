@@ -1,0 +1,29 @@
+# Render's free plan has no cron or shell, so retrain from GitHub Actions instead.
+# Add repo secrets: DATABASE_URL, TMDB_API_KEY, OMDB_API_KEY, SECRET_KEY
+# (Aiven must allow connections from GitHub's runners: check "Allowed IP addresses" on the service.)
+name: rebuild-recommendations
+on:
+  schedule: [{cron: '0 3 * * 0'}]   # Sundays 03:00 UTC
+  workflow_dispatch: {}
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11', cache: pip}
+      - run: python -m pip install -r requirements-ml.txt
+      # MovieLens is downloaded here on every run instead of being committed: its licence does not
+      # allow redistributing the data. Without it the collaborative model would be rebuilt from your
+      # own (few) ratings only and would overwrite the better MovieLens-trained one.
+      - name: Download MovieLens
+        run: |
+          curl -fsSL -o ml.zip https://files.grouplens.org/datasets/movielens/ml-latest-small.zip
+          mkdir -p data && unzip -q ml.zip -d data && rm ml.zip
+      - name: Seed catalog and train
+        run: python scripts/train.py --seed --seed-pages 25 --movielens data/ml-latest-small
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
